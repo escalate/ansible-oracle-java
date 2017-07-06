@@ -1,0 +1,52 @@
+---
+
+- name: Import Oracle Java GPG signing key
+  apt_key:
+    keyserver: hkp://keyserver.ubuntu.com:80
+    state: present
+    id: EEA14886
+  when: ansible_os_family == 'Debian'
+  tags:
+    - java
+
+- name: Add Oracle Java repository
+  apt_repository:
+    repo: "deb http://ppa.launchpad.net/webupd8team/java/ubuntu {{ansible_distribution_release | lower}} main"
+    state: present
+  when: ansible_os_family == 'Debian'
+  tags:
+    - java
+
+- name: Install debconf packages
+  apt:
+    name: "{{item}}"
+    state: present
+  with_items:
+    - debconf
+    - debconf-utils
+  when: ansible_os_family == 'Debian'
+  tags:
+    - java
+
+- name: Accept Oracle Java license
+  shell: "echo oracle-java{{java_version}}-installer shared/accepted-oracle-license-v1-1 boolean true | /usr/bin/debconf-set-selections"
+  when: ansible_os_family == 'Debian'
+  tags:
+    - java
+
+- name: Install Oracle Java packages
+  apt:
+    name: "oracle-java{{java_version}}-installer"
+    state: present
+    update_cache: yes
+  when: ansible_os_family == 'Debian'
+  tags:
+    - java
+
+- name: Set Oracle Java as default
+  apt:
+    name: "oracle-java{{java_version}}-set-default"
+    state: present
+  when: ansible_os_family == 'Debian'
+  tags:
+    - java
